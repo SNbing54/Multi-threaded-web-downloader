@@ -10,3 +10,7 @@ The developer only used this downloader to 64 threads, and it is not recommended
 开发者只是一个普通初中生，平时忙于学业，所以还没有编写GUI，请见谅......
 
 _**The developer is just an ordinary junior high school student who is usually busy with his studies, so he has not written a GUI yet, please forgive me......**_
+
+各位可以用Microsoft Visual Studio打开Multi-threaded web downloader.sln这个文件，会自动加载出项目
+
+You can open the Multi-threaded web downloader.sln file in Microsoft Visual Studio and it will load the project automatically
