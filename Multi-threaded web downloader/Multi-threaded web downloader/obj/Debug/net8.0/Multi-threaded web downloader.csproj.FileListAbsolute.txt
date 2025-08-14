@@ -1,0 +1,14 @@
+C:\Users\SNbin\source\repos\Multi-threaded web downloader\Multi-threaded web downloader\bin\Debug\net8.0\Multi-threaded web downloader.exe
+C:\Users\SNbin\source\repos\Multi-threaded web downloader\Multi-threaded web downloader\bin\Debug\net8.0\Multi-threaded web downloader.deps.json
+C:\Users\SNbin\source\repos\Multi-threaded web downloader\Multi-threaded web downloader\bin\Debug\net8.0\Multi-threaded web downloader.runtimeconfig.json
+C:\Users\SNbin\source\repos\Multi-threaded web downloader\Multi-threaded web downloader\bin\Debug\net8.0\Multi-threaded web downloader.dll
+C:\Users\SNbin\source\repos\Multi-threaded web downloader\Multi-threaded web downloader\bin\Debug\net8.0\Multi-threaded web downloader.pdb
+C:\Users\SNbin\source\repos\Multi-threaded web downloader\Multi-threaded web downloader\obj\Debug\net8.0\Multi-threaded web downloader.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\SNbin\source\repos\Multi-threaded web downloader\Multi-threaded web downloader\obj\Debug\net8.0\Multi-threaded web downloader.AssemblyInfoInputs.cache
+C:\Users\SNbin\source\repos\Multi-threaded web downloader\Multi-threaded web downloader\obj\Debug\net8.0\Multi-threaded web downloader.AssemblyInfo.cs
+C:\Users\SNbin\source\repos\Multi-threaded web downloader\Multi-threaded web downloader\obj\Debug\net8.0\Multi-threaded web downloader.csproj.CoreCompileInputs.cache
+C:\Users\SNbin\source\repos\Multi-threaded web downloader\Multi-threaded web downloader\obj\Debug\net8.0\Multi-threaded web downloader.dll
+C:\Users\SNbin\source\repos\Multi-threaded web downloader\Multi-threaded web downloader\obj\Debug\net8.0\refint\Multi-threaded web downloader.dll
+C:\Users\SNbin\source\repos\Multi-threaded web downloader\Multi-threaded web downloader\obj\Debug\net8.0\Multi-threaded web downloader.pdb
+C:\Users\SNbin\source\repos\Multi-threaded web downloader\Multi-threaded web downloader\obj\Debug\net8.0\Multi-threaded web downloader.genruntimeconfig.cache
+C:\Users\SNbin\source\repos\Multi-threaded web downloader\Multi-threaded web downloader\obj\Debug\net8.0\ref\Multi-threaded web downloader.dll
