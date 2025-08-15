@@ -2,18 +2,45 @@
 using System.Threading.Tasks;
 using System.Diagnostics;
 using System.Threading;
+using System.Text.Json;
+
+class DownloaderSettings
+{
+    public int ThreadCount { get; set; } = 4;
+    public List<string> AllowedExtensions { get; set; } = new List<string> { ".mp4", ".zip", ".exe", ".jpg" };
+}
 
 class MultiThreadDownloader
 {
     public int ThreadCount { get; set; } = 4;
     public List<string> AllowedExtensions { get; set; } = new List<string> { ".mp4", ".zip", ".exe", ".jpg" };
 
-    // 新增：用于统计已下载字节数
     private long downloadedBytes;
+    public const string SettingsFile = "downloader_settings.json";
+
+    public void LoadSettings()
+    {
+        if (File.Exists(SettingsFile))
+        {
+            var json = File.ReadAllText(SettingsFile);
+            var s = JsonSerializer.Deserialize<DownloaderSettings>(json);
+            if (s != null)
+            {
+                ThreadCount = s.ThreadCount;
+                AllowedExtensions = s.AllowedExtensions;
+            }
+        }
+    }
+
+    public void SaveSettings()
+    {
+        var s = new DownloaderSettings { ThreadCount = ThreadCount, AllowedExtensions = AllowedExtensions };
+        var json = JsonSerializer.Serialize(s, new JsonSerializerOptions { WriteIndented = true });
+        File.WriteAllText(SettingsFile, json);
+    }
 
     public async Task DownloadFileAsync(string url, string outputPath)
     {
-        // 修正扩展名获取逻辑
         string ext = Path.GetExtension(new Uri(url).AbsolutePath).ToLower();
         if (!AllowedExtensions.Contains(ext))
         {
@@ -34,7 +61,7 @@ class MultiThreadDownloader
             return;
         }
         long fileSize = response.Content.Headers.ContentLength.Value;
-        Console.WriteLine($"File size: {fileSize} bytes");
+        Console.WriteLine($"File size: {fileSize / 1024} KB");
 
         var tasks = new List<Task>();
         long partSize = fileSize / ThreadCount;
@@ -42,7 +69,6 @@ class MultiThreadDownloader
         fs.SetLength(fileSize);
         fs.Close();
 
-        // 新增：进度条显示任务
         downloadedBytes = 0;
         var cts = new CancellationTokenSource();
         var progressTask = ShowProgressAsync(fileSize, cts.Token);
@@ -57,7 +83,6 @@ class MultiThreadDownloader
                 using var partClient = new HttpClient();
                 var req = new HttpRequestMessage(HttpMethod.Get, url);
                 req.Headers.Range = new System.Net.Http.Headers.RangeHeaderValue(start, end);
-                // 实时流式下载
                 var resp = await partClient.SendAsync(req, HttpCompletionOption.ResponseHeadersRead);
                 resp.EnsureSuccessStatusCode();
                 using var stream = await resp.Content.ReadAsStreamAsync();
@@ -75,21 +100,18 @@ class MultiThreadDownloader
                     Interlocked.Add(ref downloadedBytes, bytesRead);
                     position += bytesRead;
                 }
-                // 不再输出分块完成信息，避免干扰进度条
-                // Console.WriteLine($"Part {part + 1} done: {start}-{end}");
             }));
         }
         await Task.WhenAll(tasks);
-        cts.Cancel(); // 停止进度条显示
+        cts.Cancel();
         await progressTask;
         Console.WriteLine("\nDownload complete.");
     }
 
-    // 新增：进度条和剩余时间显示方法
+    // 进度条和剩余时间显示方法，单位改为KB
     private async Task ShowProgressAsync(long totalBytes, CancellationToken token)
     {
         var sw = Stopwatch.StartNew();
-        long lastBytes = 0;
         while (!token.IsCancellationRequested)
         {
             long current = Interlocked.Read(ref downloadedBytes);
@@ -98,11 +120,9 @@ class MultiThreadDownloader
             long remainBytes = totalBytes - current;
             double remainSec = speed > 0 ? remainBytes / speed : 0;
             string bar = new string('#', (int)(percent / 2)).PadRight(50);
-            Console.Write($"\r[{bar}] {percent:F2}%  {current}/{totalBytes} bytes  速度: {speed / 1024:F2} KB/s  剩余: {TimeSpan.FromSeconds(remainSec):hh':'mm':'ss}   ");
-            lastBytes = current;
+            Console.Write($"\r[{bar}] {percent:F2}%  {current / 1024}/{totalBytes / 1024} KB  速度: {speed / 1024:F2} KB/s  剩余: {TimeSpan.FromSeconds(remainSec):hh':'mm':'ss}   ");
             await Task.Delay(500, token).ContinueWith(_ => { });
         }
-        // 下载完成后输出换行，避免和后续输出混在一起
         Console.WriteLine();
     }
 }
@@ -113,19 +133,39 @@ class Program
     static async Task Main(string[] args)
     {
         var downloader = new MultiThreadDownloader();
-        Console.WriteLine("输入下载线程数 (默认4):");
-        if (int.TryParse(Console.ReadLine(), out int threads))
-            downloader.ThreadCount = threads;
-
-        Console.WriteLine("输入允许自动下载的扩展名(用逗号分隔,如 .mp4,.zip):");
-        var exts = Console.ReadLine();
-        if (!string.IsNullOrWhiteSpace(exts))
-            downloader.AllowedExtensions = exts.Split(',').Select(e => e.Trim().ToLower()).ToList();
-
-        Console.WriteLine("输入下载链接:");
-        var url = Console.ReadLine();
-        if (string.IsNullOrWhiteSpace(url)) return;
-        var fileName = Path.GetFileName(new Uri(url).LocalPath);
-        await downloader.DownloadFileAsync(url, fileName);
+        downloader.LoadSettings();
+        while (true)
+        {
+            Console.WriteLine("输入1下载文件，输入0修改设置，输入其它退出:");
+            var op = Console.ReadLine();
+            if (op == "1")
+            {
+                Console.WriteLine($"当前线程数: {downloader.ThreadCount}");
+                Console.WriteLine($"当前允许扩展名: {string.Join(",", downloader.AllowedExtensions)}");
+                Console.WriteLine("输入下载链接:");
+                var url = Console.ReadLine();
+                if (string.IsNullOrWhiteSpace(url)) continue;
+                var fileName = Path.GetFileName(new Uri(url).LocalPath);
+                await downloader.DownloadFileAsync(url, fileName);
+            }
+            else if (op == "0")
+            {
+                Console.WriteLine($"当前线程数: {downloader.ThreadCount}");
+                Console.WriteLine("输入下载线程数 (默认4):");
+                if (int.TryParse(Console.ReadLine(), out int threads))
+                    downloader.ThreadCount = threads;
+                Console.WriteLine($"当前允许扩展名: {string.Join(",", downloader.AllowedExtensions)}");
+                Console.WriteLine("输入允许自动下载的扩展名(用逗号分隔,如 .mp4,.zip):");
+                var exts = Console.ReadLine();
+                if (!string.IsNullOrWhiteSpace(exts))
+                    downloader.AllowedExtensions = exts.Split(',').Select(e => e.Trim().ToLower()).ToList();
+                downloader.SaveSettings();
+                Console.WriteLine("设置已保存！");
+            }
+            else
+            {
+                break;
+            }
+        }
     }
 }
