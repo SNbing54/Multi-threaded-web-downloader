@@ -24,3 +24,5 @@ You can open the Multi-threaded web downloader.sln file in Microsoft Visual Stud
 使用-dff <文件格式（用逗号分隔）> 设置允许Multi-threaded web downloader程序下载的文件格式
 
 使用-out <保存路径（用英文双引号标出）> 设置Multi-threaded web downloader程序下载的文件的保存路径
+
+使用-ads <URL（用英文双引号标出，逗号分隔）> 设置Multi-threaded web downloader程序禁止自动下载的站点
